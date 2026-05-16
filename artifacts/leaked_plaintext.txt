@@ -1,0 +1,3 @@
+KMUTT Cybersecurity Agency - Incident field note A
+Case: encrypted outbound traffic from compromised host
+Known message recovered from endpoint memory. This text is intentionally long so analysts can recover enough CTR keystream for the second encrypted note during the lab exercise.

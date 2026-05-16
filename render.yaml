@@ -1,0 +1,7 @@
+services:
+  - type: web
+    name: kmutt-crypto-incident-lab
+    runtime: docker
+    plan: free
+    autoDeploy: true
+    healthCheckPath: /health

@@ -1,0 +1,92 @@
+<!doctype html>
+<html lang="th">
+  <head>
+    <meta charset="utf-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1">
+    <title>KMUTT Crypto Incident Lab</title>
+    <link rel="stylesheet" href="{{ url_for('static', filename='styles.css') }}">
+  </head>
+  <body>
+    <header class="topbar">
+      <div>
+        <p class="eyebrow">KMUTT Cybersecurity Agency</p>
+        <h1>Crypto Incident Lab</h1>
+      </div>
+      <span class="status-pill">AES-CTR Nonce Reuse</span>
+    </header>
+
+    <main class="layout">
+      <section class="panel intro">
+        <div class="section-label">Scenario</div>
+        <h2>Reused Nonce Investigation</h2>
+        <p>
+          ทีม Blue Team ตรวจพบ traffic เข้ารหัสจากเครื่องที่ถูก compromise และพบข้อความ plaintext
+          บางส่วนตกค้างอยู่ใน memory dump ของ endpoint เดียวกัน นักวิเคราะห์ต้องตรวจสอบว่า
+          การเข้ารหัสถูกใช้อย่างปลอดภัยหรือไม่ และกู้คืนข้อความลับจากหลักฐานที่มีอยู่
+        </p>
+        <p>
+          เป้าหมายของโจทย์คือถอดรหัส incident note ชุดที่สองจาก artifact ที่ให้มา โดยไม่ brute force key
+          และไม่โจมตีระบบภายนอก ข้อมูลทั้งหมดเป็นข้อมูลจำลองเพื่อการเรียนรู้เท่านั้น
+        </p>
+      </section>
+
+      <section class="panel">
+        <div class="section-label">Artifacts</div>
+        <h2>ดาวน์โหลดหลักฐาน</h2>
+        <div class="artifact-grid">
+          {% for artifact in artifacts %}
+            <a class="artifact" href="{{ url_for('download_artifact', filename=artifact) }}">
+              <span class="artifact-name">{{ artifact }}</span>
+              <span class="artifact-action">Download</span>
+            </a>
+          {% endfor %}
+        </div>
+      </section>
+
+      <section class="panel">
+        <div class="section-label">Submit</div>
+        <h2>ส่งคำตอบ</h2>
+        <form method="post" class="flag-form">
+          <label for="flag">Flag</label>
+          <div class="flag-row">
+            <input
+              id="flag"
+              name="flag"
+              value="{{ submitted_flag }}"
+              placeholder="KMUTT{...}"
+              autocomplete="off"
+              spellcheck="false"
+            >
+            <button type="submit">Check</button>
+          </div>
+        </form>
+
+        {% if result is sameas true %}
+          <div class="result success">
+            <strong>ถูกต้อง</strong>
+            <p>Flag ที่ได้คือ <code>{{ flag }}</code></p>
+          </div>
+        {% elif result is sameas false %}
+          <div class="result error">
+            <strong>ยังไม่ถูกต้อง</strong>
+            <p>ตรวจ format, ตัวพิมพ์ใหญ่เล็ก และขั้นตอน XOR อีกครั้ง</p>
+          </div>
+        {% endif %}
+      </section>
+
+      {% if result is sameas true %}
+        <section class="panel solution">
+          <div class="section-label">Walkthrough</div>
+          <h2>แนวทางวิเคราะห์</h2>
+          <ol>
+            <li>เปิด <code>network_capture.json</code> แล้วสังเกตว่า ciphertext ทั้งสองรายการใช้ algorithm และ nonce เดียวกัน</li>
+            <li>AES-CTR สร้าง keystream จาก key และ nonce/counter แล้วนำมา XOR กับ plaintext</li>
+            <li>เมื่อ reuse nonce กับ key เดิม จะได้ keystream เดิม ทำให้หา keystream ได้จาก <code>ciphertext_a XOR leaked_plaintext</code></li>
+            <li>นำ keystream ที่ได้ไป XOR กับ <code>ciphertext_b</code> เพื่อกู้คืน plaintext ชุดที่สอง</li>
+            <li>อ่านข้อความที่ถอดได้และส่ง flag ในระบบ</li>
+          </ol>
+        </section>
+      {% endif %}
+    </main>
+  </body>
+</html>
